@@ -1,4 +1,4 @@
-FROM chatwoot/chatwoot:latest
+FROM chatwoot/chatwoot:v4.8.0
 
 # Instala Node.js, npm e pnpm no Alpine
 RUN apk add --no-cache nodejs npm && \
@@ -8,8 +8,12 @@ RUN apk add --no-cache nodejs npm && \
 RUN sed -i "40s/\.\.\.ROLES/'administrator'/g" app/javascript/dashboard/constants/permissions.js && \
     sed -i "48s/\.\.\.ROLES/'administrator'/g" app/javascript/dashboard/constants/permissions.js
 
-# Remover botão delete das mensagensdelet
+# Remover botão delete das mensagens
 RUN sed -i "356,359c\   delete:false," app/javascript/dashboard/components-next/message/Message.vue
+
+#Alterações de texte
+#Alterar header da conversa 
+RUN sed -i '10c\    "TAB_HEADING": "TESTE - CONVERSA",' app/javascript/dashboard/i18n/locale/pt_BR/chatlist.json
 
 # Precompila os assets com uma SECRET_KEY_BASE fake
 RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile

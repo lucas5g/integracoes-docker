@@ -7,3 +7,10 @@ docker-compose run --rm rails bundle exec rails db:chatwoot_prepare
 
 admin@mail.com  
 Admin@2000
+
+## Criar docker image
+docker build -t lucassousaweb/chatwoot:v4.8.0 .
+
+docker login
+
+docker push lucassousaweb/chatwoot:v4.8.0
