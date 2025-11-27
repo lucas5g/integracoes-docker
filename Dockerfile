@@ -31,7 +31,7 @@ RUN sed -i 's/look_up_exising_conversation || create_new_conversation/look_up_ex
 # 4. Substitui o v-for original (menuItems) para usar o novo filteredMenuItems.
 # ----------------------------------------------------------
 RUN sed -i "/const props/i import { useAdmin } from 'dashboard/composables/useAdmin';" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
-    sed -i "/import { useAdmin }/a import { isAdmin } from useAdmin();" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
+    sed -i "/import { useAdmin }/a const { isAdmin } = useAdmin();" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
     sed -i "/<\/script>/i const filteredMenuItems = computed(() => {\n  if (isAdmin.value) {\n    return menuItems.value;\n  }\n  return isAdmin.value ? menuItems.value : menuItems.value.filter(item => \!['Portals', 'Captain', 'Settings'].includes(item.name));\n});" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
     sed -i "s/v-for=\"item in menuItems\"/v-for=\"item in filteredMenuItems\"/" app/javascript/dashboard/components-next/sidebar/Sidebar.vue
 
