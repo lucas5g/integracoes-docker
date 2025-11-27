@@ -23,6 +23,18 @@ RUN sed -i 's/look_up_exising_conversation || create_new_conversation/look_up_ex
     sed -i 's/error instanceof ExceptionWithMessage/error?.message \&\& error.message !== "Error"/' app/javascript/dashboard/components-next/NewConversation/ComposeConversation.vue && \
     sed -i 's/? error.data/? error.message/' app/javascript/dashboard/components-next/NewConversation/ComposeConversation.vue
 
+# --- Ocultar menus para o Agent ---
+# 1. Adiciona o import do useAdmin antes da definição de props.
+# 2. Insere a variável isAdmin após o import do useAdmin.
+# 3. Injeta a função filteredMenuItems antes do </script>, incluindo lógica de filtro
+#    que oculta itens como Portals, Captain e Settings para usuários que não são admin.
+# 4. Substitui o v-for original (menuItems) para usar o novo filteredMenuItems.
+# ----------------------------------------------------------
+RUN sed -i "/const props/i import { useAdmin } from 'dashboard/composables/useAdmin';" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
+    sed -i "/import { useAdmin }/a import { isAdmin } from useAdmin();" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
+    sed -i "/<\/script>/i const filteredMenuItems = computed(() => {\n  if (isAdmin.value) {\n    return menuItems.value;\n  }\n  return isAdmin.value ? menuItems.value : menuItems.value.filter(item => \!['Portals', 'Captain', 'Settings'].includes(item.name));\n});" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
+    sed -i "s/v-for=\"item in menuItems\"/v-for=\"item in filteredMenuItems\"/" app/javascript/dashboard/components-next/sidebar/Sidebar.vue
+
 
 # Precompila os assets com uma SECRET_KEY_BASE fake
 RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
