@@ -4,9 +4,8 @@ FROM chatwoot/chatwoot:v4.8.0
 RUN apk add --no-cache nodejs npm && \
     npm install -g pnpm@10
 
-# Customizações no projeto
-RUN sed -i "40s/\.\.\.ROLES/'administrator'/g" app/javascript/dashboard/constants/permissions.js && \
-    sed -i "48s/\.\.\.ROLES/'administrator'/g" app/javascript/dashboard/constants/permissions.js
+# -- Ocultar conversas atruibuidas para agentes não-admin ---
+RUN sed -i "48c\      'administrator'," app/javascript/dashboard/constants/permissions.js
 
 # Remover botão delete das mensagens
 RUN sed -i "356,359c\   delete:false," app/javascript/dashboard/components-next/message/Message.vue
