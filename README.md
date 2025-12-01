@@ -1,9 +1,11 @@
 # integracoes-docker
 
 
-
 ## Prepare the database
 docker-compose run --rm rails bundle exec rails db:chatwoot_prepare
+
+## Migrate
+docker exec -it chatwoot bundle exec rails db:migrate
 
 admin@mail.com  
 Admin@2000
