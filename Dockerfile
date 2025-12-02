@@ -34,6 +34,10 @@ RUN sed -i "/const props/i import { useAdmin } from 'dashboard/composables/useAd
     sed -i "/<\/script>/i const filteredMenuItems = computed(() => {\n  if (isAdmin.value) {\n    return menuItems.value;\n  }\n  return isAdmin.value ? menuItems.value : menuItems.value.filter(item => \!['Portals', 'Captain', 'Settings', 'Inbox'].includes(item.name));\n});" app/javascript/dashboard/components-next/sidebar/Sidebar.vue && \
     sed -i "s/v-for=\"item in menuItems\"/v-for=\"item in filteredMenuItems\"/" app/javascript/dashboard/components-next/sidebar/Sidebar.vue
 
-
+# Adiciona o callback normalize_phone_number e insere o método no model Contact
+# para normalizar números de telefone antes da validação.
+RUN sed -i '/before_validation :prepare_contact_attributes/a\  before_validation :normalize_phone_number' app/models/contact.rb && \
+    sed -i '/def phone_number_format/i\  def normalize_phone_number\n    return if phone_number.blank?\n\n    # Remove caracteres não numéricos exceto +\n    cleaned = phone_number.gsub(/[^\\d+]/, "")\n\n    # Se for número brasileiro com 12 dígitos (sem o 9), adiciona o 9 após o DDD\n    if cleaned.match?(/\\+55\\d{10}\\z/)\n      cleaned = cleaned.insert(5, "9")\n    end\n\n    self.phone_number = cleaned\n  end\n' /home/lucas/projects/chatwoot/app/models/contact.rb
+    
 # Precompila os assets com uma SECRET_KEY_BASE fake
 RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
