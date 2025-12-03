@@ -41,19 +41,7 @@ RUN sed -i '/before_validation :prepare_contact_attributes/a\  before_validation
 # Modifica o concern AutoAssignmentHandler para incluir um novo after_save
 # que aciona a reatribuição automática quando uma conversa é marcada como resolvida.    
 RUN sed -i '/after_save :run_auto_assignment/a\    after_save :trigger_reassignment_on_resolve' app/models/concerns/auto_assignment_handler.rb && \
-    sed -i '/^end$/i\
-\  def trigger_reassignment_on_resolve\
-\    return unless saved_change_to_status? && resolved?\
-\    return unless inbox.enable_auto_assignment?\
-\    if inbox.auto_assignment_v2_enabled?\
-\      AutoAssignment::AssignmentJob.perform_later(inbox_id: inbox.id)\
-\    else\
-\      unassigned = inbox.conversations.unassigned.open.where.not(id: id).order(:created_at).first\
-\      return unless unassigned\
-\      AutoAssignment::AgentAssignmentService.new(conversation: unassigned, allowed_agent_ids: inbox.member_ids_with_assignment_capacity).perform\
-\    end\
-\  end\
-' app/models/concerns/auto_assignment_handler.rb
+    sed -i '/^end$/i\  def trigger_reassignment_on_resolve\n    return unless saved_change_to_status? \&\& resolved?\n    return unless inbox.enable_auto_assignment?\n    if inbox.auto_assignment_v2_enabled?\n      AutoAssignment::AssignmentJob.perform_later(inbox_id: inbox.id)\n    else\n      unassigned = inbox.conversations.unassigned.open.where.not(id: id).order(:created_at).first\n      return unless unassigned\n      AutoAssignment::AgentAssignmentService.new(conversation: unassigned, allowed_agent_ids: inbox.member_ids_with_assignment_capacity).perform\n    end\n  end\n' app/models/concerns/auto_assignment_handler.rb
 
 # Precompila os assets com uma SECRET_KEY_BASE fake
 RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
