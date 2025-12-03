@@ -40,7 +40,6 @@ RUN sed -i '/before_validation :prepare_contact_attributes/a\  before_validation
 # 7 - Adiciona funcionalidade de reatribuição automática ao resolver conversas
 # Modifica o concern AutoAssignmentHandler para incluir um novo after_save
 # que aciona a reatribuição automática quando uma conversa é marcada como resolvida.    
-# 7 - Alternativa usando echo e cat
 RUN sed -i '/after_save :run_auto_assignment/a\    after_save :trigger_reassignment_on_resolve' app/models/concerns/auto_assignment_handler.rb && \
     sed -i '/^end$/i\
 \  def trigger_reassignment_on_resolve\
