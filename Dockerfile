@@ -4,6 +4,9 @@ FROM chatwoot/chatwoot:v4.8.0
 RUN apk add --no-cache nodejs npm && \
     npm install -g pnpm@10
 
+# 0 - Atualiza a versão exibida no rodapé do Chatwoot
+RUN sed -i '54i\      <span class="px-2">0.12.2</span>' app/javascript/dashboard/routes/dashboard/settings/account/components/BuildInfo.vue
+
 # 1 -- Ocultar conversas atruibuidas para agentes não-admin ---
 RUN sed -i "48c\      'administrator'," app/javascript/dashboard/constants/permissions.js
 
