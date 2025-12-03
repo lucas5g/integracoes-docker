@@ -37,5 +37,33 @@ RUN sed -i "/const props/i import { useAdmin } from 'dashboard/composables/useAd
 RUN sed -i '/before_validation :prepare_contact_attributes/a\  before_validation :normalize_phone_number' app/models/contact.rb && \
     sed -i '/def phone_number_format/i\  def normalize_phone_number\n    return if phone_number.blank?\n\n    # Remove caracteres não numéricos exceto +\n    cleaned = phone_number.gsub(/[^\\d+]/, "")\n\n    # Se for número brasileiro com 12 dígitos (sem o 9), adiciona o 9 após o DDD\n    if cleaned.match?(/\\+55\\d{10}\\z/)\n      cleaned = cleaned.insert(5, "9")\n    end\n\n    self.phone_number = cleaned\n  end\n' app/models/contact.rb
 
+# 7 - Adiciona funcionalidade de reatribuição automática ao resolver conversas
+# Modifica o concern AutoAssignmentHandler para incluir um novo after_save
+# que aciona a reatribuição automática quando uma conversa é marcada como resolvida.    
+RUN sed -i '
+# Adiciona o novo after_save após o existente
+/after_save :run_auto_assignment/a\    after_save :trigger_reassignment_on_resolve
+# Adiciona o novo método antes do último "end" do module
+/^end$/i\
+\
+\  # Triggers reassignment when a conversation is resolved\
+\  def trigger_reassignment_on_resolve\
+\    return unless saved_change_to_status? \&\& resolved?\
+\    return unless inbox.enable_auto_assignment?\
+\
+\    if inbox.auto_assignment_v2_enabled?\
+\      AutoAssignment::AssignmentJob.perform_later(inbox_id: inbox.id)\
+\    else\
+\      unassigned = inbox.conversations.unassigned.open.where.not(id: id).order(:created_at).fwirst\
+\      return unless unassigned\
+\
+\      AutoAssignment::AgentAssignmentService.new(\
+\        conversation: unassigned,\
+\        allowed_agent_ids: inbox.member_ids_with_assignment_capacity\
+\      ).perform\
+\    end\
+\  end\
+' app/models/concerns/auto_assignment_handler.rb
+
 # Precompila os assets com uma SECRET_KEY_BASE fake
 RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
